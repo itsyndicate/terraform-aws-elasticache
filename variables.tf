@@ -74,10 +74,10 @@ variable "ingress_protocol" {
   description = "Protocol."
 }
 
-variable "ingress_cidr_blocks_rule_description" {
-  type        = string
-  default     = null
-  description = "Description of the rule."
+variable "ingress_cidr_blocks_rule_descriptions" {
+  type        = list(string)
+  default     = []
+  description = "Description of the rules."
 }
 
 variable "ingress_cidr_blocks" {
@@ -92,10 +92,10 @@ variable "ingress_ipv6_cidr_blocks" {
   description = "List of IPv6 CIDR blocks."
 }
 
-variable "ingress_source_rule_description" {
-  type        = string
-  default     = null
-  description = "Description of the rule."
+variable "ingress_source_rule_descriptions" {
+  type        = list(string)
+  default     = []
+  description = "Description of the rules."
 }
 
 variable "ingress_source_security_group_ids" {
@@ -106,10 +106,10 @@ variable "ingress_source_security_group_ids" {
 
 # Egress block
 
-variable "egress_cidr_blocks_rule_description" {
-  type        = string
-  default     = null
-  description = "Description of the rule."
+variable "egress_cidr_blocks_rule_descriptions" {
+  type        = list(string)
+  default     = []
+  description = "Description of the rules."
 }
 
 variable "egress_from_port" {
@@ -142,10 +142,10 @@ variable "egress_ipv6_cidr_blocks" {
   description = "List of IPv6 CIDR blocks."
 }
 
-variable "egress_source_rule_description" {
-  type        = string
-  default     = null
-  description = "Description of the rule."
+variable "egress_source_rule_descriptions" {
+  type        = list(string)
+  default     = []
+  description = "Description of the rules."
 }
 
 variable "egress_source_security_group_ids" {

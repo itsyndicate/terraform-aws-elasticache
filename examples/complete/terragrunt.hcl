@@ -32,11 +32,11 @@ inputs = {
   ingress_to_port               = 6379
   ingress_protocol              = "tcp"
 
-  ingress_cidr_blocks_rule_description = "Allow access from VPC"
-  ingress_cidr_blocks                  = ["1.2.3.4/16", "5.6.7.8/16"]
+  ingress_cidr_blocks_rule_descriptions = ["Allow access from staging VPC", "Allow access from production VPC"]
+  ingress_cidr_blocks                   = ["1.2.3.4/16", "5.6.7.8/16"]
 
   # Security Group Egress Rules
-  egress_cidr_blocks_rule_description = "Allow all outbound traffic"
+  egress_cidr_blocks_rule_descriptions = ["Allow all outbound traffic"]
   egress_from_port                    = 0
   egress_to_port                      = 0
   egress_protocol                     = "-1"

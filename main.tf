@@ -36,22 +36,22 @@ resource "aws_security_group_rule" "this_ingress_self" {
 
 
 resource "aws_security_group_rule" "this_ingress_cidr_blocks" {
-  count = var.create_security_group && length(var.ingress_cidr_blocks) > 0 || var.create_security_group && length(var.ingress_ipv6_cidr_blocks) > 0 ? 1 : 0
+  count = var.create_security_group && length(var.ingress_cidr_blocks) > 0 || var.create_security_group && length(var.ingress_ipv6_cidr_blocks) > 0 ? try(length(var.ingress_cidr_blocks), length(var.ingress_ipv6_cidr_blocks)) : 0
 
-  description       = var.ingress_cidr_blocks_rule_description
+  description       = try(try(element(var.ingress_cidr_blocks_rule_descriptions, count.index), var.ingress_cidr_blocks_rule_descriptions[0]), null)
   type              = "ingress"
   from_port         = var.ingress_from_port
   to_port           = var.ingress_to_port
   protocol          = var.ingress_protocol
-  cidr_blocks       = var.ingress_cidr_blocks
-  ipv6_cidr_blocks  = var.ingress_ipv6_cidr_blocks
+  cidr_blocks       = try([element(var.ingress_cidr_blocks, count.index)], [])
+  ipv6_cidr_blocks  = try([element(var.ingress_ipv6_cidr_blocks, count.index)], [])
   security_group_id = aws_security_group.this[0].id
 }
 
 resource "aws_security_group_rule" "this_ingress_source" {
   count = var.create_security_group && length(var.ingress_source_security_group_ids) > 0 ? length(var.ingress_source_security_group_ids) : 0
 
-  description              = var.ingress_source_rule_description
+  description              = try(element(var.ingress_source_rule_descriptions, count.index), null)
   type                     = "ingress"
   from_port                = var.ingress_from_port
   to_port                  = var.ingress_to_port
@@ -61,22 +61,22 @@ resource "aws_security_group_rule" "this_ingress_source" {
 }
 
 resource "aws_security_group_rule" "this_egress_cidr_blocks" {
-  count = var.create_security_group && length(var.egress_cidr_blocks) > 0 || var.create_security_group && length(var.egress_ipv6_cidr_blocks) > 0 ? 1 : 0
+  count = var.create_security_group && length(var.egress_cidr_blocks) > 0 || var.create_security_group && length(var.egress_ipv6_cidr_blocks) > 0 ? try(length(var.egress_cidr_blocks), length(var.egress_ipv6_cidr_blocks)) : 0
 
-  description       = var.egress_cidr_blocks_rule_description
+  description       = try(try(element(var.egress_cidr_blocks_rule_descriptions, count.index), var.egress_cidr_blocks_rule_descriptions[0]), null)
   type              = "egress"
   from_port         = var.egress_from_port
   to_port           = var.egress_to_port
   protocol          = var.egress_protocol
-  cidr_blocks       = var.egress_cidr_blocks
-  ipv6_cidr_blocks  = var.egress_ipv6_cidr_blocks
+  cidr_blocks       = try([element(var.egress_cidr_blocks, count.index)], [])
+  ipv6_cidr_blocks  = try([element(var.egress_ipv6_cidr_blocks, count.index)], [])
   security_group_id = aws_security_group.this[0].id
 }
 
 resource "aws_security_group_rule" "this_egress_source" {
   count = var.create_security_group && length(var.egress_source_security_group_ids) > 0 ? length(var.egress_source_security_group_ids) : 0
 
-  description              = var.egress_source_rule_description
+  description              = try(element(var.egress_source_rule_descriptions, count.index), null)
   type                     = "egress"
   from_port                = var.egress_from_port
   to_port                  = var.egress_to_port
