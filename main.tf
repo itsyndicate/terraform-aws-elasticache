@@ -90,7 +90,7 @@ resource "aws_security_group_rule" "this_egress_source" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_elasticache_subnet_group" "this" {
-  count = var.create_subnet_group ? 1 : 0
+  count = var.cache_type == "traditional" && var.create_subnet_group ? 1 : 0
 
   name        = var.subnet_group_name
   description = var.subnet_group_description
@@ -110,7 +110,9 @@ resource "aws_elasticache_parameter_group" "this" {
   family      = var.family
 
   dynamic "parameter" {
-    for_each = var.cluster_mode_enabled ? concat([{ name = "cluster-enabled", value = "yes" }], var.parameter) : var.parameter
+    for_each = var.cluster_mode_enabled ? concat([
+      { name = "cluster-enabled", value = "yes" }
+    ], var.parameter) : var.parameter
     content {
       name  = parameter.value.name
       value = tostring(parameter.value.value)
@@ -145,28 +147,30 @@ resource "aws_elasticache_replication_group" "this" {
   num_cache_clusters          = var.cluster_mode_enabled ? null : var.num_cache_clusters
   port                        = var.port
   parameter_group_name        = var.global_replication_group_id == null && var.create_parameter_group ? aws_elasticache_parameter_group.this[0].id : (var.global_replication_group_id == null && !var.create_parameter_group ? var.parameter_group_name : null)
-  preferred_cache_cluster_azs = length(var.preferred_cache_cluster_azs) == 0 ? null : [for n in range(0, var.num_cache_clusters) : element(var.preferred_cache_cluster_azs, n)]
-  automatic_failover_enabled  = var.cluster_mode_enabled ? true : var.automatic_failover_enabled
-  ip_discovery                = var.ip_discovery
-  network_type                = var.network_type
-  multi_az_enabled            = var.multi_az_enabled
-  subnet_group_name           = var.create_subnet_group ? aws_elasticache_subnet_group.this[0].name : var.subnet_group_name
-  security_group_ids          = var.create_security_group ? [aws_security_group.this[0].id] : var.security_group_ids
-  maintenance_window          = var.maintenance_window
-  notification_topic_arn      = var.notification_topic_arn
-  engine                      = var.global_replication_group_id == null ? var.engine : null
-  engine_version              = var.global_replication_group_id == null ? var.engine_version : null
-  at_rest_encryption_enabled  = var.global_replication_group_id == null ? var.at_rest_encryption_enabled : null
-  kms_key_id                  = var.at_rest_encryption_enabled ? var.kms_key_id : null
-  transit_encryption_enabled  = var.auth_token != null && var.global_replication_group_id == null ? var.transit_encryption_enabled : null
-  snapshot_name               = var.global_replication_group_id == null ? var.snapshot_name : null
-  snapshot_arns               = var.global_replication_group_id == null ? var.snapshot_arns : null
-  snapshot_window             = var.snapshot_window
-  snapshot_retention_limit    = var.snapshot_retention_limit
-  final_snapshot_identifier   = var.final_snapshot_identifier
-  apply_immediately           = var.apply_immediately
-  auto_minor_version_upgrade  = var.auto_minor_version_upgrade
-  data_tiering_enabled        = var.data_tiering_enabled
+  preferred_cache_cluster_azs = length(var.preferred_cache_cluster_azs) == 0 ? null : [
+    for n in range(0, var.num_cache_clusters) : element(var.preferred_cache_cluster_azs, n)
+  ]
+  automatic_failover_enabled = var.cluster_mode_enabled ? true : var.automatic_failover_enabled
+  ip_discovery               = var.ip_discovery
+  network_type               = var.network_type
+  multi_az_enabled           = var.multi_az_enabled
+  subnet_group_name          = var.create_subnet_group ? aws_elasticache_subnet_group.this[0].name : var.subnet_group_name
+  security_group_ids         = var.create_security_group ? [aws_security_group.this[0].id] : var.security_group_ids
+  maintenance_window         = var.maintenance_window
+  notification_topic_arn     = var.notification_topic_arn
+  engine                     = var.global_replication_group_id == null ? var.engine : null
+  engine_version             = var.global_replication_group_id == null ? var.engine_version : null
+  at_rest_encryption_enabled = var.global_replication_group_id == null ? var.at_rest_encryption_enabled : null
+  kms_key_id                 = var.at_rest_encryption_enabled ? var.kms_key_id : null
+  transit_encryption_enabled = var.auth_token != null && var.global_replication_group_id == null ? var.transit_encryption_enabled : null
+  snapshot_name              = var.global_replication_group_id == null ? var.snapshot_name : null
+  snapshot_arns              = var.global_replication_group_id == null ? var.snapshot_arns : null
+  snapshot_window            = var.snapshot_window
+  snapshot_retention_limit   = var.snapshot_retention_limit
+  final_snapshot_identifier  = var.final_snapshot_identifier
+  apply_immediately          = var.apply_immediately
+  auto_minor_version_upgrade = var.auto_minor_version_upgrade
+  data_tiering_enabled       = var.data_tiering_enabled
 
   dynamic "log_delivery_configuration" {
     for_each = var.log_delivery_configuration
@@ -197,6 +201,31 @@ resource "aws_elasticache_replication_group" "this" {
   depends_on = [
     aws_elasticache_parameter_group.this,
     aws_elasticache_subnet_group.this,
+    aws_security_group.this
+  ]
+}
+
+resource "aws_elasticache_serverless_cache" "serverless" {
+  count = var.cache_type == "serverless" ? 1 : 0
+
+  engine             = var.engine
+  name               = var.name
+  security_group_ids = var.create_security_group ? [aws_security_group.this[0].id] : var.security_group_ids
+  subnet_ids         = var.subnet_ids
+
+  cache_usage_limits {
+    data_storage {
+      maximum = var.data_storage_maximum
+      unit    = "GB"
+    }
+    ecpu_per_second {
+      maximum = var.ecpu_per_second_maximum
+    }
+  }
+
+  tags = var.serverless_tags
+
+  depends_on = [
     aws_security_group.this
   ]
 }

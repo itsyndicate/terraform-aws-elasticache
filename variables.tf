@@ -26,6 +26,13 @@ variable "vpc_id" {
   description = "VPC ID."
 }
 
+variable "cache_type" {
+  description = "Defines the cache type to deploy ('traditional' or 'serverless')."
+  type        = string
+  default     = "traditional"
+}
+
+
 variable "revoke_rules_on_delete" {
   type        = bool
   default     = false
@@ -194,7 +201,7 @@ variable "subnet_group_tags" {
 
 variable "create_parameter_group" {
   type        = bool
-  default     = true
+  default     = false
   description = "Whether new parameter group should be created. Set to false if you want to use existing parameter group."
 }
 
@@ -237,7 +244,7 @@ variable "parameter_group_tags" {
 
 variable "create_replication_group" {
   type        = bool
-  default     = true
+  default     = false
   description = "Controls if Replication Group should be created."
 }
 
@@ -263,8 +270,8 @@ variable "global_replication_group_id" {
   type        = string
   default     = null
   description = <<-EOT
-    The ID of the global replication group to which this replication group should belong. 
-    If this parameter is specified, the replication group is added to the specified global replication group as a secondary replication group; 
+    The ID of the global replication group to which this replication group should belong.
+    If this parameter is specified, the replication group is added to the specified global replication group as a secondary replication group;
     otherwise, the replication group is not part of any global replication group.
   EOT
 }
@@ -303,8 +310,8 @@ variable "preferred_cache_cluster_azs" {
   type        = list(string)
   default     = []
   description = <<-EOT
-    List of EC2 availability zones in which the replication group's cache clusters will be created. 
-    The order of the availability zones in the list is considered. 
+    List of EC2 availability zones in which the replication group's cache clusters will be created.
+    The order of the availability zones in the list is considered.
     The first item in the list will be the primary node.
   EOT
 }
@@ -313,8 +320,8 @@ variable "automatic_failover_enabled" {
   type        = bool
   default     = false
   description = <<EOT
-    Specifies whether a read-only replica will be automatically promoted to read/write primary if the existing primary fails. 
-    If enabled, `num_cache_clusters` must be greater than 1. 
+    Specifies whether a read-only replica will be automatically promoted to read/write primary if the existing primary fails.
+    If enabled, `num_cache_clusters` must be greater than 1.
     Must be enabled for Redis (cluster mode enabled) replication groups.
   EOT
 }
@@ -341,7 +348,7 @@ variable "security_group_ids" {
   type        = list(string)
   default     = []
   description = <<EOT
-    IDs of one or more Amazon VPC security groups associated with this replication group. 
+    IDs of one or more Amazon VPC security groups associated with this replication group.
     Use this parameter only when you are creating a replication group in an Amazon Virtual Private Cloud.
   EOT
 }
@@ -395,6 +402,32 @@ variable "transit_encryption_enabled" {
   EOT
 }
 
+# Serverless-specific variables
+
+
+variable "name" {
+  description = "Name for serverless cache."
+  type        = string
+  default     = null
+}
+
+variable "data_storage_maximum" {
+  description = "Maximum data storage for serverless cache."
+  type        = number
+  default     = 50
+}
+
+variable "ecpu_per_second_maximum" {
+  description = "Maximum ECPU units per second for serverless cache."
+  type        = number
+  default     = 10000
+}
+
+variable "serverless_tags" {
+  description = "Tags for serverless cache."
+  type        = map(any)
+}
+
 variable "snapshot_name" {
   type        = string
   description = "Name of a snapshot from which to restore data into the new node group. Changing the `snapshot_name` forces a new resource."
@@ -423,8 +456,8 @@ variable "final_snapshot_identifier" {
   type        = string
   default     = null
   description = <<EOT
-    The name of your final node group (shard) snapshot. 
-    ElastiCache creates the snapshot from the primary node in the cluster. 
+    The name of your final node group (shard) snapshot.
+    ElastiCache creates the snapshot from the primary node in the cluster.
     If omitted, no final snapshot will be made."
   EOT
 }
@@ -445,8 +478,8 @@ variable "auto_minor_version_upgrade" {
   type        = bool
   default     = true
   description = <<EOT
-    Specifies whether minor version engine upgrades will be applied automatically to the underlying Cache Cluster instances during the maintenance window. 
-    Only supported for engine type "redis" and if the engine version is 6 or higher. 
+    Specifies whether minor version engine upgrades will be applied automatically to the underlying Cache Cluster instances during the maintenance window.
+    Only supported for engine type "redis" and if the engine version is 6 or higher.
   EOT
 }
 
