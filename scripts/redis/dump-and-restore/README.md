@@ -1,5 +1,13 @@
 ## Description
-dump and restore redis
+dump and restore redis of any version
+
+
+how script works:
+1. get all keys from SOURCE_REDIS_HOST
+2. loop through each key
+3. determine the type of the key(string, list, set, zset, hash)
+4. uses redis-cli to get value from key
+5. set the value to the TARGET_REDIS_HOST
 
 ## Before using script specify these variable:
 ### Source Redis details
